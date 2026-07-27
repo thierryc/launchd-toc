@@ -1,0 +1,82 @@
+name: CI
+
+on:
+  push:
+    branches: ["main", "agent/**"]
+  pull_request:
+
+permissions:
+  contents: read
+
+jobs:
+  build-and-unit-test:
+    name: Build and unit test (${{ matrix.runner }})
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - runner: macos-26
+            arch: arm64
+          - runner: macos-26-intel
+            arch: x86_64
+    runs-on: ${{ matrix.runner }}
+    steps:
+      - uses: actions/checkout@v5
+      - name: Toolchain
+        run: xcodebuild -version
+      - name: Build
+        run: |
+          set -o pipefail
+          xcodebuild \
+            -project LaunchdTOC.xcodeproj \
+            -scheme LaunchdTOC \
+            -configuration Debug \
+            -destination "platform=macOS,arch=${{ matrix.arch }}" \
+            CODE_SIGNING_ALLOWED=NO \
+            build
+      - name: Unit tests
+        run: |
+          set -o pipefail
+          xcodebuild \
+            -project LaunchdTOC.xcodeproj \
+            -scheme LaunchdTOC \
+            -configuration Debug \
+            -destination "platform=macOS,arch=${{ matrix.arch }}" \
+            CODE_SIGNING_ALLOWED=NO \
+            -only-testing:LaunchdTOCTests \
+            test
+
+  analyze-and-verify:
+    name: Analyze and verify universal product
+    runs-on: macos-26
+    steps:
+      - uses: actions/checkout@v5
+      - name: Static analysis
+        run: |
+          xcodebuild \
+            -project LaunchdTOC.xcodeproj \
+            -scheme LaunchdTOC \
+            -configuration Debug \
+            -destination "platform=macOS" \
+            CODE_SIGNING_ALLOWED=NO \
+            analyze
+      - name: Universal Release build
+        run: |
+          xcodebuild \
+            -project LaunchdTOC.xcodeproj \
+            -scheme LaunchdTOC \
+            -configuration Release \
+            -derivedDataPath build/DerivedData \
+            -destination "generic/platform=macOS" \
+            ARCHS="arm64 x86_64" \
+            ONLY_ACTIVE_ARCH=NO \
+            CODE_SIGNING_ALLOWED=NO \
+            build
+      - name: Verify architectures and entitlements
+        run: |
+          app_path="build/DerivedData/Build/Products/Release/Launchd TOC.app"
+          binary_path="$app_path/Contents/MacOS/Launchd TOC"
+          architectures="$(lipo -archs "$binary_path")"
+          [[ "$architectures" == *"arm64"* && "$architectures" == *"x86_64"* ]]
+          entitlements="$(codesign -d --entitlements - "$app_path" 2>&1 || true)"
+          [[ "$entitlements" != *"com.apple.security.app-sandbox"* ]]

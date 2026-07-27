@@ -1,0 +1,66 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
+<plist version="1.0">
+<dict>
+    <key>Label</key>
+    <string>com.litsquare.fixture</string>
+    <key>Program</key>
+    <string>/Users/example/工具/run</string>
+    <key>ProgramArguments</key>
+    <array>
+        <string>/Users/example/工具/run</string>
+        <string>--safe;$PATH</string>
+    </array>
+    <key>EnvironmentVariables</key>
+    <dict>
+        <key>LANG</key>
+        <string>en_US.UTF-8</string>
+        <key>VendorNestedValue</key>
+        <dict>
+            <key>PreserveMe</key>
+            <true/>
+        </dict>
+    </dict>
+    <key>KeepAlive</key>
+    <dict>
+        <key>SuccessfulExit</key>
+        <false/>
+        <key>OtherJobEnabled</key>
+        <dict>
+            <key>com.example.dependency</key>
+            <true/>
+        </dict>
+    </dict>
+    <key>StartCalendarInterval</key>
+    <array>
+        <dict>
+            <key>Hour</key>
+            <integer>8</integer>
+            <key>Minute</key>
+            <integer>15</integer>
+            <key>VendorNestedValue</key>
+            <dict>
+                <key>PreserveMe</key>
+                <string>yes</string>
+            </dict>
+        </dict>
+        <dict>
+            <key>Weekday</key>
+            <integer>2</integer>
+            <key>Hour</key>
+            <integer>13</integer>
+        </dict>
+    </array>
+    <key>VendorConfiguration</key>
+    <dict>
+        <key>Nested</key>
+        <array>
+            <string>one</string>
+            <dict>
+                <key>two</key>
+                <integer>2</integer>
+            </dict>
+        </array>
+    </dict>
+</dict>
+</plist>
