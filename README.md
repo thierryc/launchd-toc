@@ -8,6 +8,22 @@ The first supported release targets macOS 26 and is distributed as a Developer I
 
 > Development is in progress. The first downloadable build will be `v0.1.0-beta.1`.
 
+## Screenshots
+
+Screenshots use synthetic demo data; no personal launchd configuration is included.
+
+### Browse the inventory
+
+![Launchd TOC overview showing synthetic launch jobs](docs/images/launchd-toc-overview.png)
+
+### Understand a job
+
+![Launchd TOC job detail showing a running synthetic job](docs/images/launchd-toc-detail.png)
+
+### Edit launch behavior
+
+![Launchd TOC Launch and Schedule editor with synthetic data](docs/images/launchd-toc-editor.png)
+
 ## Privacy and scope
 
 - No analytics, accounts, or automatic network requests
@@ -21,8 +37,11 @@ The first supported release targets macOS 26 and is distributed as a Developer I
 
 - Native three-column macOS interface with search, persistent selection, smart filters, and a sortable job table
 - Runtime inspection through `launchctl print` and `print-disabled`
+- Dock badge showing the number of currently running inventoried jobs
 - Explicit load, unload, run, restart, enable, and disable workflows
-- Structured property-list editor that preserves unknown and nested values
+- Behavior-first job details that distinguish launchd configuration from application output
+- Guided, tabbed property-list editor with exact launchd values available for technical review
+- Unknown and nested property-list values remain preserved when guided fields are saved
 - XML and binary format preservation, `plutil` validation, atomic saves, and ten timestamped backups
 - Calendar and interval schedule summaries with the next five predicted runs
 - Bounded stdout/stderr tail with refresh, open, and safe clear controls

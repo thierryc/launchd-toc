@@ -23,6 +23,31 @@ struct ScheduleAndUpdateTests {
         #expect(dates[4] == start.addingTimeInterval(1_500))
     }
 
+    @Test("Calendar summaries use launchd weekday numbering")
+    func weekdaySummary() {
+        var calendar = Calendar(identifier: .gregorian)
+        calendar.locale = Locale(identifier: "en_US_POSIX")
+        let preview = SchedulePreview(calendar: calendar)
+
+        let monday = JobConfiguration(
+            label: "com.litsquare.monday",
+            program: "/usr/bin/true",
+            calendarSchedules: [
+                CalendarSchedule(minute: 30, hour: 9, weekday: 1)
+            ]
+        )
+        let sunday = JobConfiguration(
+            label: "com.litsquare.sunday",
+            program: "/usr/bin/true",
+            calendarSchedules: [
+                CalendarSchedule(minute: 30, hour: 9, weekday: 7)
+            ]
+        )
+
+        #expect(preview.summary(for: monday) == "Monday at 09:30")
+        #expect(preview.summary(for: sunday) == "Sunday at 09:30")
+    }
+
     @Test("Semantic versions compare stable numeric components")
     func semanticVersions() {
         #expect(SemanticVersion("v1.2.0")! > SemanticVersion("1.1.9")!)

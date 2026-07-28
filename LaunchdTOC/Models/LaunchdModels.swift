@@ -84,6 +84,68 @@ enum PlistFormat: String, Codable, Hashable, Sendable {
     }
 }
 
+enum JobProcessType: Hashable, Identifiable, Sendable {
+    case standard
+    case background
+    case adaptive
+    case interactive
+    case other(String)
+
+    static let knownCases: [JobProcessType] = [
+        .standard,
+        .background,
+        .adaptive,
+        .interactive
+    ]
+
+    init(rawValue: String) {
+        switch rawValue {
+        case "Standard": self = .standard
+        case "Background": self = .background
+        case "Adaptive": self = .adaptive
+        case "Interactive": self = .interactive
+        default: self = .other(rawValue)
+        }
+    }
+
+    var id: String { rawValue }
+
+    var rawValue: String {
+        switch self {
+        case .standard: "Standard"
+        case .background: "Background"
+        case .adaptive: "Adaptive"
+        case .interactive: "Interactive"
+        case let .other(value): value
+        }
+    }
+
+    var displayName: String {
+        switch self {
+        case .standard: "Standard"
+        case .background: "Background"
+        case .adaptive: "Adaptive"
+        case .interactive: "Interactive"
+        case let .other(value): "\(value) (preserved)"
+        }
+    }
+
+    var explanation: String {
+        switch self {
+        case .standard:
+            "Uses the system's standard resource policy."
+        case .background:
+            "Runs background work with limits intended to protect foreground responsiveness."
+        case .adaptive:
+            "Moves between background and interactive resource policies based on XPC activity."
+        case .interactive:
+            "Runs with the resource policy used for interactive apps."
+        case .other:
+            "This value is not recognized by Launchd TOC and will be preserved exactly."
+        }
+    }
+}
+
 indirect enum PropertyListValue: Hashable, Sendable {
     case string(String)
     case integer(Int)
@@ -241,7 +303,8 @@ struct JobConfiguration: Hashable, Sendable {
     static let supportedKeys: Set<String> = [
         "Label", "Program", "ProgramArguments", "RunAtLoad", "KeepAlive",
         "StartInterval", "StartCalendarInterval", "WorkingDirectory",
-        "EnvironmentVariables", "StandardOutPath", "StandardErrorPath"
+        "EnvironmentVariables", "StandardOutPath", "StandardErrorPath",
+        "ProcessType", "ThrottleInterval"
     ]
 
     var label: String
@@ -250,6 +313,8 @@ struct JobConfiguration: Hashable, Sendable {
     var runAtLoad: Bool
     var keepAlive: Bool?
     var startInterval: Int?
+    var throttleInterval: Int?
+    var processType: JobProcessType?
     var calendarSchedules: [CalendarSchedule]
     var workingDirectory: String?
     var environment: [String: String]
@@ -266,6 +331,8 @@ struct JobConfiguration: Hashable, Sendable {
         runAtLoad: Bool = false,
         keepAlive: Bool? = false,
         startInterval: Int? = nil,
+        throttleInterval: Int? = nil,
+        processType: JobProcessType? = nil,
         calendarSchedules: [CalendarSchedule] = [],
         workingDirectory: String? = nil,
         environment: [String: String] = [:],
@@ -281,6 +348,8 @@ struct JobConfiguration: Hashable, Sendable {
         self.runAtLoad = runAtLoad
         self.keepAlive = keepAlive
         self.startInterval = startInterval
+        self.throttleInterval = throttleInterval
+        self.processType = processType
         self.calendarSchedules = calendarSchedules
         self.workingDirectory = workingDirectory
         self.environment = environment
@@ -312,6 +381,8 @@ struct JobConfiguration: Hashable, Sendable {
         }
 
         startInterval = propertyList["StartInterval"]?.integerValue
+        throttleInterval = propertyList["ThrottleInterval"]?.integerValue
+        processType = propertyList["ProcessType"]?.stringValue.map(JobProcessType.init(rawValue:))
         if let calendarArray = propertyList["StartCalendarInterval"]?.arrayValue {
             calendarWasArray = true
             calendarSchedules = calendarArray.compactMap(\.dictionaryValue).map(CalendarSchedule.init)
@@ -345,6 +416,15 @@ struct JobConfiguration: Hashable, Sendable {
                 values["EnvironmentVariables"] = .dictionary(advancedEnvironment)
             }
         }
+        if processType == nil, let rawProcessType = rawValues["ProcessType"] {
+            values["ProcessType"] = rawProcessType
+        }
+        if throttleInterval == nil,
+           let rawThrottleInterval = rawValues["ThrottleInterval"],
+           rawThrottleInterval.integerValue == nil
+        {
+            values["ThrottleInterval"] = rawThrottleInterval
+        }
         return values
     }
 
@@ -359,6 +439,16 @@ struct JobConfiguration: Hashable, Sendable {
             values["KeepAlive"] = .boolean(keepAlive)
         }
         values.setOptionalInteger(startInterval, forKey: "StartInterval")
+        if let throttleInterval {
+            values["ThrottleInterval"] = .integer(throttleInterval)
+        } else if rawValues["ThrottleInterval"]?.integerValue != nil {
+            values.removeValue(forKey: "ThrottleInterval")
+        }
+        if let processType {
+            values["ProcessType"] = .string(processType.rawValue)
+        } else if rawValues["ProcessType"]?.stringValue != nil {
+            values.removeValue(forKey: "ProcessType")
+        }
 
         if calendarSchedules.isEmpty {
             values.removeValue(forKey: "StartCalendarInterval")

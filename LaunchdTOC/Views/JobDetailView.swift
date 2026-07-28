@@ -9,6 +9,8 @@ struct JobDetailView: View {
     @State private var logMessage: String?
     @State private var isLoadingLog = false
     @State private var showsClearConfirmation = false
+    @State private var showsArgumentVector = true
+    @State private var showsExactValues = false
 
     var body: some View {
         ScrollView {
@@ -17,46 +19,154 @@ struct JobDetailView: View {
                     .padding(.horizontal, 28)
                     .padding(.vertical, 24)
                 Divider()
-                DetailSection(title: "Overview") {
+
+                DetailSection(title: "At a Glance") {
+                    behaviorSummaryCard
                     detailRow("Runtime State") {
                         RuntimeStateLabel(state: job.runtimeState)
                     }
-                    detailRow("Process ID", value: job.pidText)
-                    detailRow("Last Exit Code", value: lastExitCode)
-                    detailRow("Last Run", value: job.lastRunText)
+                    if case .running = job.runtimeState {
+                        detailRow("Process ID", value: job.pidText, monospaced: true)
+                    }
+                    if case let .failed(exitCode) = job.runtimeState {
+                        detailRow("Last Exit Code", value: String(exitCode), monospaced: true)
+                    }
+                    if job.lastRun != nil {
+                        detailRow("Last Run", value: job.lastRunText)
+                    }
                     detailRow("Enabled", value: job.runtimeState == .disabled ? "No" : "Yes")
                 }
-                DetailSection(title: "Configuration") {
-                    detailRow("Executable", value: job.configuration.executable ?? "—")
-                    detailRow(
-                        "Arguments",
-                        value: job.configuration.programArguments.isEmpty
-                            ? "—"
-                            : job.configuration.programArguments.joined(separator: "  ")
-                    )
-                    detailRow("Working Directory", value: job.configuration.workingDirectory ?? "—")
-                    detailRow(
-                        "Environment",
-                        value: job.configuration.environment.isEmpty
-                            ? "—"
-                            : job.configuration.environment.keys.sorted().joined(separator: ", ")
-                    )
-                    detailRow("Run at Load", value: job.configuration.runAtLoad ? "Yes" : "No")
-                    detailRow("Keep Alive", value: keepAliveDescription)
-                }
-                DetailSection(title: "Schedule") {
-                    detailRow("Summary", value: job.scheduleSummary)
-                    if job.predictedRuns.isEmpty {
-                        detailRow("Next Run", value: "No predictable run")
-                    } else {
+
+                DetailSection(title: "Launch Behavior") {
+                    detailRow("Run When Loaded", value: job.configuration.runAtLoad ? "Yes" : "No")
+                    detailRow("Keep Running", value: job.configuration.keepAliveDescription)
+
+                    if let repeatingSchedule = job.configuration.repeatingScheduleDescription {
+                        detailRow("Launch Schedule", value: repeatingSchedule)
                         ForEach(Array(job.predictedRuns.enumerated()), id: \.offset) { index, date in
                             detailRow(
-                                index == 0 ? "Next Run" : "",
+                                index == 0 ? "Next Predicted Launch" : "",
                                 value: date.formatted(date: .abbreviated, time: .shortened)
                             )
                         }
+                    } else {
+                        emptyMessage(
+                            "No repeating launchd interval or calendar schedule is configured."
+                        )
+                    }
+
+                    if let throttleInterval = job.configuration.throttleInterval {
+                        detailRow(
+                            "Minimum Restart Delay",
+                            value: LaunchDurationFormatter.description(seconds: throttleInterval)
+                        )
+                        helpText(
+                            "ThrottleInterval limits how frequently launchd starts the process. "
+                                + "It does not control how often the application performs work."
+                        )
+                    }
+
+                    if let processType = job.configuration.processType {
+                        detailRow("Process Type", value: processType.displayName)
+                        helpText(processType.explanation)
                     }
                 }
+
+                DetailSection(title: "Execution") {
+                    commandCard
+                    detailRow("Executable", value: job.configuration.executable ?? "Not configured", monospaced: true)
+                    detailRow("Executable Source", value: job.configuration.executableSourceDescription)
+
+                    DisclosureGroup(
+                        "Command Arguments (\(job.configuration.commandArguments.count))",
+                        isExpanded: $showsArgumentVector
+                    ) {
+                        if job.configuration.commandArguments.isEmpty {
+                            emptyMessage("No command arguments are configured.")
+                        } else {
+                            VStack(alignment: .leading, spacing: 8) {
+                                ForEach(
+                                    Array(job.configuration.commandArguments.enumerated()),
+                                    id: \.offset
+                                ) { index, argument in
+                                    indexedValueRow(index: index + 1, value: argument)
+                                }
+                            }
+                            .padding(.top, 8)
+                        }
+                    }
+                }
+
+                DetailSection(title: "Environment and Files") {
+                    if let workingDirectory = job.configuration.workingDirectory {
+                        pathRow("Working Directory", path: workingDirectory)
+                    }
+                    if let standardOutPath = job.configuration.standardOutPath {
+                        pathRow("Standard Output", path: standardOutPath)
+                    }
+                    if let standardErrorPath = job.configuration.standardErrorPath {
+                        pathRow("Standard Error", path: standardErrorPath)
+                    }
+
+                    if job.configuration.workingDirectory == nil,
+                       job.configuration.standardOutPath == nil,
+                       job.configuration.standardErrorPath == nil
+                    {
+                        emptyMessage("No working directory or output files are configured.")
+                    }
+
+                    if job.configuration.environment.isEmpty {
+                        emptyMessage("No environment variables are configured.")
+                    } else {
+                        Text("Environment Variables")
+                            .font(.subheadline.weight(.medium))
+                            .padding(.top, 6)
+                        ForEach(job.configuration.environment.keys.sorted(), id: \.self) { key in
+                            detailRow(key, value: job.configuration.environment[key] ?? "", monospaced: true)
+                        }
+                    }
+                }
+
+                DetailSection(title: "Technical Details") {
+                    DisclosureGroup("Exact launchd values", isExpanded: $showsExactValues) {
+                        VStack(alignment: .leading, spacing: 8) {
+                            detailRow("Property List Format", value: job.configuration.originalFormat.rawValue.uppercased())
+                            if let program = job.configuration.program {
+                                detailRow("Program", value: program, monospaced: true)
+                            } else {
+                                detailRow("Program", value: "Not present")
+                            }
+                            Text("ProgramArguments (\(job.configuration.programArguments.count))")
+                                .font(.subheadline.weight(.medium))
+                                .padding(.top, 4)
+                            ForEach(
+                                Array(job.configuration.programArguments.enumerated()),
+                                id: \.offset
+                            ) { index, argument in
+                                indexedValueRow(index: index, value: argument)
+                            }
+
+                            if !job.configuration.advancedValues.isEmpty {
+                                Text("Preserved Properties")
+                                    .font(.subheadline.weight(.medium))
+                                    .padding(.top, 6)
+                                ForEach(job.configuration.advancedValues.keys.sorted(), id: \.self) { key in
+                                    detailRow(
+                                        key,
+                                        value: job.configuration.advancedValues[key]?.displayString ?? "",
+                                        monospaced: true
+                                    )
+                                }
+                            }
+                        }
+                        .padding(.top, 8)
+                    }
+                    helpText(
+                        "These values come from the launchd property list. Application log output "
+                            + "is shown separately below and is never treated as configuration."
+                    )
+                }
+
                 logsSection
             }
         }
@@ -113,8 +223,77 @@ struct JobDetailView: View {
         )
     }
 
+    private var behaviorSummaryCard: some View {
+        VStack(alignment: .leading, spacing: 6) {
+            Text(job.configuration.launchBehaviorSummary)
+                .font(.body.weight(.medium))
+            if let repeatingSchedule = job.configuration.repeatingScheduleDescription {
+                Label(repeatingSchedule, systemImage: "calendar.badge.clock")
+                    .font(.caption)
+                    .foregroundStyle(.secondary)
+            } else {
+                Label("No repeating launchd schedule", systemImage: "calendar.badge.minus")
+                    .font(.caption)
+                    .foregroundStyle(.secondary)
+            }
+        }
+        .frame(maxWidth: .infinity, alignment: .leading)
+        .padding(12)
+        .background(Color(nsColor: .controlBackgroundColor))
+        .clipShape(.rect(cornerRadius: 8))
+        .overlay {
+            RoundedRectangle(cornerRadius: 8)
+                .stroke(.separator, lineWidth: 0.5)
+        }
+        .padding(.bottom, 8)
+        .accessibilityElement(children: .combine)
+        .accessibilityIdentifier("detail.behaviorSummary")
+    }
+
+    private var commandCard: some View {
+        VStack(alignment: .leading, spacing: 8) {
+            HStack {
+                Text("Invocation Preview")
+                    .font(.caption.weight(.semibold))
+                    .foregroundStyle(.secondary)
+                Spacer()
+                Button {
+                    copyToPasteboard(job.configuration.commandPreview)
+                } label: {
+                    Label("Copy Invocation", systemImage: "doc.on.doc")
+                        .labelStyle(.iconOnly)
+                }
+                .buttonStyle(.borderless)
+                .help("Copy invocation preview")
+                .disabled(job.configuration.commandPreview.isEmpty)
+            }
+            Text(
+                job.configuration.commandPreview.isEmpty
+                    ? "No executable is configured."
+                    : job.configuration.commandPreview
+            )
+            .font(.system(.body, design: .monospaced))
+            .foregroundStyle(job.configuration.commandPreview.isEmpty ? .secondary : .primary)
+            .textSelection(.enabled)
+            .fixedSize(horizontal: false, vertical: true)
+        }
+        .frame(maxWidth: .infinity, alignment: .leading)
+        .padding(12)
+        .background(Color(nsColor: .controlBackgroundColor))
+        .clipShape(.rect(cornerRadius: 8))
+        .overlay {
+            RoundedRectangle(cornerRadius: 8)
+                .stroke(.separator, lineWidth: 0.5)
+        }
+        .padding(.bottom, 6)
+    }
+
     private var logsSection: some View {
-        DetailSection(title: "Logs") {
+        DetailSection(title: "Application Output") {
+            Text("stdout and stderr are produced by the application and are not launchd configuration.")
+                .font(.caption)
+                .foregroundStyle(.secondary)
+
             HStack {
                 Picker("Log Stream", selection: $logStream) {
                     ForEach(LogStream.allCases) { stream in
@@ -177,7 +356,7 @@ struct JobDetailView: View {
                 RoundedRectangle(cornerRadius: 6)
                     .stroke(.separator, lineWidth: 0.5)
             }
-            .accessibilityLabel("\(logStream.title) log")
+            .accessibilityLabel("\(logStream.title) application output")
         }
     }
 
@@ -189,25 +368,18 @@ struct JobDetailView: View {
         return URL(filePath: path)
     }
 
-    private var lastExitCode: String {
-        guard case let .failed(exitCode) = job.runtimeState else { return "—" }
-        return String(exitCode)
-    }
-
-    private var keepAliveDescription: String {
-        switch job.configuration.keepAlive {
-        case true: "Yes"
-        case false: "No"
-        case nil: "Advanced condition"
-        }
-    }
-
-    private func detailRow(_ title: String, value: String) -> some View {
+    private func detailRow(
+        _ title: String,
+        value: String,
+        monospaced: Bool = false
+    ) -> some View {
         detailRow(title) {
             Text(value)
-                .foregroundStyle(value == "—" ? .secondary : .primary)
+                .font(monospaced ? .system(.body, design: .monospaced) : .body)
+                .foregroundStyle(value == "Not configured" ? .secondary : .primary)
                 .textSelection(.enabled)
-                .lineLimit(3)
+                .fixedSize(horizontal: false, vertical: true)
+                .multilineTextAlignment(.leading)
         }
     }
 
@@ -217,11 +389,78 @@ struct JobDetailView: View {
     ) -> some View {
         LabeledContent {
             content()
+                .frame(maxWidth: .infinity, alignment: .leading)
         } label: {
             Text(title)
                 .foregroundStyle(.secondary)
         }
         .padding(.vertical, 3)
+    }
+
+    private func indexedValueRow(index: Int, value: String) -> some View {
+        HStack(alignment: .firstTextBaseline, spacing: 10) {
+            Text(String(index))
+                .font(.caption.monospacedDigit())
+                .foregroundStyle(.secondary)
+                .frame(width: 24, alignment: .trailing)
+            Text(value)
+                .font(.system(.body, design: .monospaced))
+                .textSelection(.enabled)
+                .fixedSize(horizontal: false, vertical: true)
+            Spacer(minLength: 0)
+        }
+        .accessibilityElement(children: .combine)
+        .accessibilityLabel("Argument \(index), \(value)")
+    }
+
+    private func pathRow(_ title: String, path: String) -> some View {
+        detailRow(title) {
+            HStack(alignment: .firstTextBaseline, spacing: 8) {
+                Text(path)
+                    .font(.system(.body, design: .monospaced))
+                    .textSelection(.enabled)
+                    .fixedSize(horizontal: false, vertical: true)
+                Spacer(minLength: 4)
+                Button {
+                    copyToPasteboard(path)
+                } label: {
+                    Label("Copy \(title)", systemImage: "doc.on.doc")
+                        .labelStyle(.iconOnly)
+                }
+                .buttonStyle(.borderless)
+                .help("Copy \(title.lowercased())")
+
+                Button {
+                    NSWorkspace.shared.activateFileViewerSelecting([URL(filePath: path)])
+                } label: {
+                    Label("Reveal \(title)", systemImage: "folder")
+                        .labelStyle(.iconOnly)
+                }
+                .buttonStyle(.borderless)
+                .help("Reveal in Finder")
+                .disabled(!FileManager.default.fileExists(atPath: path))
+            }
+        }
+    }
+
+    private func emptyMessage(_ message: String) -> some View {
+        Text(message)
+            .font(.callout)
+            .foregroundStyle(.secondary)
+            .fixedSize(horizontal: false, vertical: true)
+            .padding(.vertical, 3)
+    }
+
+    private func helpText(_ message: String) -> some View {
+        Text(message)
+            .font(.caption)
+            .foregroundStyle(.secondary)
+            .fixedSize(horizontal: false, vertical: true)
+    }
+
+    private func copyToPasteboard(_ value: String) {
+        NSPasteboard.general.clearContents()
+        NSPasteboard.general.setString(value, forType: .string)
     }
 
     private func refreshLog() async {

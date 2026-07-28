@@ -98,10 +98,13 @@ struct SchedulePreview: Sendable {
         }
 
         if let weekday = schedule.weekday {
-            let normalized = weekday == 0 ? 1 : weekday
-            let names = calendar.weekdaySymbols
-            if (1...names.count).contains(normalized) {
-                return "\(names[normalized - 1]) at \(time)"
+            let formatter = DateFormatter()
+            formatter.calendar = calendar
+            formatter.locale = calendar.locale ?? .autoupdatingCurrent
+            let names = formatter.weekdaySymbols ?? calendar.weekdaySymbols
+            let index = weekday == 0 || weekday == 7 ? 0 : weekday
+            if names.indices.contains(index) {
+                return "\(names[index]) at \(time)"
             }
         }
         if let day = schedule.day {

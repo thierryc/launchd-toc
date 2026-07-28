@@ -12,12 +12,15 @@
 		1CD20BDCA56F56343788E50A /* LaunchdModels.swift in Sources */ = {isa = PBXBuildFile; fileRef = DB13B0AC7D2F8B83766A5D76 /* LaunchdModels.swift */; };
 		23284BBAEFA846DE89446D88 /* LaunchctlClient.swift in Sources */ = {isa = PBXBuildFile; fileRef = 5E8DA431F29D19CB2A444139 /* LaunchctlClient.swift */; };
 		24FAADEB6E9F8B5C70CA0109 /* PlistRepositoryTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 4B7D15D4DCFA594E6E3E4AEC /* PlistRepositoryTests.swift */; };
+		390538BAF48E81D25C86240F /* JobPresentation.swift in Sources */ = {isa = PBXBuildFile; fileRef = E5877D59AA6B741E00DAC05D /* JobPresentation.swift */; };
+		41C1BCB15A8879172FEDE17F /* JobPresentationTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 312E4914D3D68CDDF644A333 /* JobPresentationTests.swift */; };
 		4387C423EA35E0FF38E60E71 /* JobStore.swift in Sources */ = {isa = PBXBuildFile; fileRef = D38BAB57BAFE3886D475789E /* JobStore.swift */; };
 		59AAF48ED8E2DC023D684D8D /* AgentEditorView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 1D1EDA258ACBEDAA1DF0B632 /* AgentEditorView.swift */; };
 		5B520218C68189DF84F22F6B /* SettingsView.swift in Sources */ = {isa = PBXBuildFile; fileRef = E39988112218583585A7B96E /* SettingsView.swift */; };
 		64240924378CF923A3DB43CD /* LaunchdTOCUITests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 3A691916693CC5309B545BD9 /* LaunchdTOCUITests.swift */; };
 		64614DC240A36872F60C23F4 /* AboutView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 2B600523384EE9C149E53D32 /* AboutView.swift */; };
 		6D42BFF54DCF9CB8CB8EECDF /* JobDetailView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 5F5DAFF0A57DF27B9140E559 /* JobDetailView.swift */; };
+		709C37585833FAEFA5719918 /* DockTileBadgeController.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9CCB9B41C4718BD08BE7A37B /* DockTileBadgeController.swift */; };
 		7159D01A8E115D5563CAFF62 /* PlistRepository.swift in Sources */ = {isa = PBXBuildFile; fileRef = A00E07A37E83F6AB21EBE936 /* PlistRepository.swift */; };
 		73E7DCD0BBBFEC438172F4AC /* RootView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 1FBA1B41E277B9A464BF61DC /* RootView.swift */; };
 		85A6BE37B33AE292FA21C26E /* TestSupport.swift in Sources */ = {isa = PBXBuildFile; fileRef = 981759836406404F167C3834 /* TestSupport.swift */; };
@@ -27,6 +30,7 @@
 		B30A833AAA6F836B29C3D53B /* ScheduleAndUpdateTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 4815154A8A6C12212D11AA7B /* ScheduleAndUpdateTests.swift */; };
 		B8490F45676337F03941C20F /* LogTailer.swift in Sources */ = {isa = PBXBuildFile; fileRef = 60B92BEFFF2234A7EE937CF7 /* LogTailer.swift */; };
 		BDCE8EE6896E766FC6BF36F4 /* CommandRunner.swift in Sources */ = {isa = PBXBuildFile; fileRef = 2AD7719261E0372EA78A5E87 /* CommandRunner.swift */; };
+		DADF9B2121E35CDED6C012AB /* DockTileBadgeTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 3C156E7F5013EF30A2B1DEE1 /* DockTileBadgeTests.swift */; };
 		E6F2594189450D2C96F04DC3 /* JobTableView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 6D7063D4C6C34BCBAE1C9D15 /* JobTableView.swift */; };
 		ECC153F7BC3F935668EF199E /* LaunchctlClientTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 63F6F43F36283F4AE35C4359 /* LaunchctlClientTests.swift */; };
 		F8102D74CAF3E8F76967EC31 /* Assets.xcassets in Resources */ = {isa = PBXBuildFile; fileRef = 62DA3EBDA9986ADB1B137C48 /* Assets.xcassets */; };
@@ -60,7 +64,9 @@
 		1FBA1B41E277B9A464BF61DC /* RootView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = RootView.swift; sourceTree = "<group>"; };
 		2AD7719261E0372EA78A5E87 /* CommandRunner.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CommandRunner.swift; sourceTree = "<group>"; };
 		2B600523384EE9C149E53D32 /* AboutView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AboutView.swift; sourceTree = "<group>"; };
+		312E4914D3D68CDDF644A333 /* JobPresentationTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = JobPresentationTests.swift; sourceTree = "<group>"; };
 		3A691916693CC5309B545BD9 /* LaunchdTOCUITests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = LaunchdTOCUITests.swift; sourceTree = "<group>"; };
+		3C156E7F5013EF30A2B1DEE1 /* DockTileBadgeTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DockTileBadgeTests.swift; sourceTree = "<group>"; };
 		4815154A8A6C12212D11AA7B /* ScheduleAndUpdateTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ScheduleAndUpdateTests.swift; sourceTree = "<group>"; };
 		4825A84A756E5F37A9F8C750 /* UpdateChecker.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = UpdateChecker.swift; sourceTree = "<group>"; };
 		4B7D15D4DCFA594E6E3E4AEC /* PlistRepositoryTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PlistRepositoryTests.swift; sourceTree = "<group>"; };
@@ -73,18 +79,21 @@
 		6D7063D4C6C34BCBAE1C9D15 /* JobTableView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = JobTableView.swift; sourceTree = "<group>"; };
 		942154B019AED0201DC4E88E /* LaunchdTOCUITests.xctest */ = {isa = PBXFileReference; explicitFileType = wrapper.cfbundle; includeInIndex = 0; path = LaunchdTOCUITests.xctest; sourceTree = BUILT_PRODUCTS_DIR; };
 		981759836406404F167C3834 /* TestSupport.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TestSupport.swift; sourceTree = "<group>"; };
+		9CCB9B41C4718BD08BE7A37B /* DockTileBadgeController.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DockTileBadgeController.swift; sourceTree = "<group>"; };
 		9D04BAEDBBD3DF94279A2569 /* IntegrationTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = IntegrationTests.swift; sourceTree = "<group>"; };
 		A00E07A37E83F6AB21EBE936 /* PlistRepository.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PlistRepository.swift; sourceTree = "<group>"; };
 		A63A79E793703EF8AFA7BBAB /* LaunchdTOCTests.xctest */ = {isa = PBXFileReference; explicitFileType = wrapper.cfbundle; includeInIndex = 0; path = LaunchdTOCTests.xctest; sourceTree = BUILT_PRODUCTS_DIR; };
 		D38BAB57BAFE3886D475789E /* JobStore.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = JobStore.swift; sourceTree = "<group>"; };
 		DB13B0AC7D2F8B83766A5D76 /* LaunchdModels.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = LaunchdModels.swift; sourceTree = "<group>"; };
 		E39988112218583585A7B96E /* SettingsView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SettingsView.swift; sourceTree = "<group>"; };
+		E5877D59AA6B741E00DAC05D /* JobPresentation.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = JobPresentation.swift; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXGroup section */
 		0BAA60ED707D81F05D438F40 /* Models */ = {
 			isa = PBXGroup;
 			children = (
+				E5877D59AA6B741E00DAC05D /* JobPresentation.swift */,
 				DB13B0AC7D2F8B83766A5D76 /* LaunchdModels.swift */,
 			);
 			path = Models;
@@ -106,6 +115,7 @@
 		3FB8B591B003F77BA31CE342 /* App */ = {
 			isa = PBXGroup;
 			children = (
+				9CCB9B41C4718BD08BE7A37B /* DockTileBadgeController.swift */,
 				4FFD2A07470E5DB3895238AF /* LaunchdTOCApp.swift */,
 			);
 			path = App;
@@ -168,8 +178,10 @@
 		B4D5227FD4D3244C3A1C60E4 /* LaunchdTOCTests */ = {
 			isa = PBXGroup;
 			children = (
+				3C156E7F5013EF30A2B1DEE1 /* DockTileBadgeTests.swift */,
 				06481317BA01DDA78E584B84 /* Fixtures */,
 				9D04BAEDBBD3DF94279A2569 /* IntegrationTests.swift */,
+				312E4914D3D68CDDF644A333 /* JobPresentationTests.swift */,
 				63F6F43F36283F4AE35C4359 /* LaunchctlClientTests.swift */,
 				4B7D15D4DCFA594E6E3E4AEC /* PlistRepositoryTests.swift */,
 				4815154A8A6C12212D11AA7B /* ScheduleAndUpdateTests.swift */,
@@ -323,7 +335,9 @@
 				64614DC240A36872F60C23F4 /* AboutView.swift in Sources */,
 				59AAF48ED8E2DC023D684D8D /* AgentEditorView.swift in Sources */,
 				BDCE8EE6896E766FC6BF36F4 /* CommandRunner.swift in Sources */,
+				709C37585833FAEFA5719918 /* DockTileBadgeController.swift in Sources */,
 				6D42BFF54DCF9CB8CB8EECDF /* JobDetailView.swift in Sources */,
+				390538BAF48E81D25C86240F /* JobPresentation.swift in Sources */,
 				4387C423EA35E0FF38E60E71 /* JobStore.swift in Sources */,
 				E6F2594189450D2C96F04DC3 /* JobTableView.swift in Sources */,
 				23284BBAEFA846DE89446D88 /* LaunchctlClient.swift in Sources */,
@@ -351,7 +365,9 @@
 			isa = PBXSourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
+				DADF9B2121E35CDED6C012AB /* DockTileBadgeTests.swift in Sources */,
 				0E67C80EDAB838EE60275621 /* IntegrationTests.swift in Sources */,
+				41C1BCB15A8879172FEDE17F /* JobPresentationTests.swift in Sources */,
 				ECC153F7BC3F935668EF199E /* LaunchctlClientTests.swift in Sources */,
 				24FAADEB6E9F8B5C70CA0109 /* PlistRepositoryTests.swift in Sources */,
 				B30A833AAA6F836B29C3D53B /* ScheduleAndUpdateTests.swift in Sources */,

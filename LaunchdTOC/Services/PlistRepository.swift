@@ -32,6 +32,7 @@ enum PlistRepositoryError: LocalizedError, Equatable {
     case invalidLabel
     case invalidExecutable
     case invalidInterval
+    case invalidThrottleInterval
     case invalidCalendarValue(String)
     case unauthorizedPath(String)
     case symbolicLink(String)
@@ -51,6 +52,8 @@ enum PlistRepositoryError: LocalizedError, Equatable {
             "Provide either Program or at least one ProgramArguments entry."
         case .invalidInterval:
             "StartInterval must be greater than zero."
+        case .invalidThrottleInterval:
+            "ThrottleInterval must be greater than zero."
         case let .invalidCalendarValue(name):
             "The calendar value for \(name) is outside its allowed range."
         case let .unauthorizedPath(path):
@@ -282,6 +285,9 @@ final class PlistRepository: @unchecked Sendable {
         }
         if let interval = configuration.startInterval, interval <= 0 {
             throw PlistRepositoryError.invalidInterval
+        }
+        if let interval = configuration.throttleInterval, interval <= 0 {
+            throw PlistRepositoryError.invalidThrottleInterval
         }
         try validateCalendar(configuration.calendarSchedules)
 

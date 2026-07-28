@@ -58,7 +58,11 @@ enum JobConfirmation: Identifiable {
 @MainActor
 @Observable
 final class JobStore {
-    private(set) var jobs: [LaunchdJob] = []
+    private(set) var jobs: [LaunchdJob] = [] {
+        didSet {
+            runningJobCountObserver?(runningJobCount)
+        }
+    }
     private(set) var isRefreshing = false
     private(set) var isCheckingForUpdates = false
     var searchText = ""
@@ -102,6 +106,9 @@ final class JobStore {
     private let updateChecker: UpdateChecker
     private let defaults: UserDefaults
     private let userID: uid_t
+    private let inventoryRefreshEnabled: Bool
+    @ObservationIgnored
+    private var runningJobCountObserver: ((Int) -> Void)?
 
     init(
         repository: PlistRepository = PlistRepository(),
@@ -111,7 +118,8 @@ final class JobStore {
         updateChecker: UpdateChecker = UpdateChecker(),
         defaults: UserDefaults = .standard,
         userID: uid_t = getuid(),
-        initialJobs: [LaunchdJob] = []
+        initialJobs: [LaunchdJob] = [],
+        inventoryRefreshEnabled: Bool = true
     ) {
         self.repository = repository
         self.launchctl = launchctl
@@ -120,6 +128,7 @@ final class JobStore {
         self.updateChecker = updateChecker
         self.defaults = defaults
         self.userID = userID
+        self.inventoryRefreshEnabled = inventoryRefreshEnabled
         jobs = initialJobs
 
         selectionID = defaults.string(forKey: PreferenceKey.selectionID)
@@ -156,11 +165,21 @@ final class JobStore {
         }
     }
 
+    var runningJobCount: Int {
+        count(for: .running)
+    }
+
+    func setRunningJobCountObserver(_ observer: @escaping (Int) -> Void) {
+        runningJobCountObserver = observer
+        observer(runningJobCount)
+    }
+
     func count(for filter: SidebarFilter) -> Int {
         jobs.filter { matches($0, filter: filter) }.count
     }
 
     func refresh() async {
+        guard inventoryRefreshEnabled else { return }
         guard !isRefreshing else { return }
         isRefreshing = true
         defer { isRefreshing = false }

@@ -66,6 +66,61 @@ struct PlistRepositoryTests {
         #expect(reloaded.rawValues["Unknown"] == configuration.rawValues["Unknown"])
     }
 
+    @Test("Process type and restart throttle round trip as structured values")
+    func processTypeAndThrottleRoundTrip() async throws {
+        let temporary = try TemporaryRepository(testName: "process-policy")
+        defer { temporary.remove() }
+        let destination = temporary.locations.userAgents.appending(path: "policy.plist")
+        let data = try PropertyListSerialization.data(
+            fromPropertyList: [
+                "Label": "com.litsquare.policy",
+                "Program": "/usr/bin/true",
+                "ProcessType": "Background",
+                "ThrottleInterval": 10
+            ],
+            format: .xml,
+            options: 0
+        )
+        try data.write(to: destination)
+
+        var configuration = try temporary.repository.loadConfiguration(at: destination)
+        #expect(configuration.processType == .background)
+        #expect(configuration.throttleInterval == 10)
+        #expect(configuration.advancedValues["ProcessType"] == nil)
+        #expect(configuration.advancedValues["ThrottleInterval"] == nil)
+
+        configuration.processType = .adaptive
+        configuration.throttleInterval = 15
+        try await temporary.repository.save(configuration, to: destination)
+
+        let reloaded = try temporary.repository.loadConfiguration(at: destination)
+        #expect(reloaded.processType == .adaptive)
+        #expect(reloaded.throttleInterval == 15)
+    }
+
+    @Test("Unknown process types remain editable without losing their exact value")
+    func unknownProcessTypeRoundTrip() async throws {
+        let temporary = try TemporaryRepository(testName: "unknown-process-policy")
+        defer { temporary.remove() }
+        let destination = temporary.locations.userAgents.appending(path: "policy.plist")
+        let data = try PropertyListSerialization.data(
+            fromPropertyList: [
+                "Label": "com.litsquare.policy",
+                "Program": "/usr/bin/true",
+                "ProcessType": "VendorSpecific"
+            ],
+            format: .xml,
+            options: 0
+        )
+        try data.write(to: destination)
+
+        let configuration = try temporary.repository.loadConfiguration(at: destination)
+        #expect(configuration.processType == .other("VendorSpecific"))
+        try await temporary.repository.save(configuration, to: destination)
+        let reloaded = try temporary.repository.loadConfiguration(at: destination)
+        #expect(reloaded.processType == .other("VendorSpecific"))
+    }
+
     @Test("Malformed files remain visible with a parse issue")
     func malformedFilesAppearInInventory() throws {
         let temporary = try TemporaryRepository(testName: "malformed")
@@ -165,6 +220,15 @@ struct PlistRepositoryTests {
                     label: "com.litsquare.calendar",
                     program: "/usr/bin/true",
                     calendarSchedules: [CalendarSchedule(hour: 30)]
+                )
+            )
+        }
+        await #expect(throws: PlistRepositoryError.self) {
+            try await temporary.repository.validate(
+                JobConfiguration(
+                    label: "com.litsquare.throttle",
+                    program: "/usr/bin/true",
+                    throttleInterval: 0
                 )
             )
         }
